@@ -1,0 +1,31 @@
+feature,coefficient,odds_ratio,direction
+can_cancel_in_window,4.7979,121.2598,raises churn risk
+billing_cycle_monthly,-1.1322,0.3223,lowers churn risk
+company_size_1000+,-1.0678,0.3437,lowers churn risk
+log_mrr,-0.9677,0.38,lowers churn risk
+log_seats,0.7994,2.2243,raises churn risk
+company_size_201-1000,-0.7895,0.4541,lowers churn risk
+features_used_3m,-0.6042,0.5465,lowers churn risk
+company_size_51-200,-0.4388,0.6448,lowers churn risk
+acquisition_channel_Referral,-0.393,0.675,lowers churn risk
+acquisition_channel_Paid Search,0.3097,1.363,raises churn risk
+seat_utilization_3m,-0.3074,0.7353,lowers churn risk
+company_size_11-50,-0.2732,0.761,lowers churn risk
+months_in_window,-0.147,0.8633,lowers churn risk
+acquisition_channel_Partner,-0.1296,0.8784,lowers churn risk
+logins_per_user_3m,-0.1255,0.882,lowers churn risk
+support_tickets_3m,0.1077,1.1137,raises churn risk
+region_North America,-0.1019,0.9031,lowers churn risk
+region_EMEA,-0.1014,0.9036,lowers churn risk
+plan_Enterprise,-0.0959,0.9086,lowers churn risk
+features_used_change,-0.0724,0.9302,lowers churn risk
+acquisition_channel_Outbound Sales,0.0658,1.068,raises churn risk
+payment_failures_3m,0.062,1.064,raises churn risk
+last_nps,-0.05,0.9513,lowers churn risk
+seat_utilization_change,-0.0404,0.9604,lowers churn risk
+logins_per_user_change,-0.0328,0.9677,lowers churn risk
+plan_Pro,0.0269,1.0273,raises churn risk
+region_LATAM,0.0267,1.0271,raises churn risk
+tenure_months,-0.0206,0.9796,lowers churn risk
+has_nps,-0.0201,0.9801,lowers churn risk
+mrr_change_pct_3m,0.0172,1.0174,raises churn risk

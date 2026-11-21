@@ -1,0 +1,6 @@
+covariate,treatment_mean,control_mean,std_mean_diff,balanced
+churn_probability,0.4674,0.4709,-0.026,True
+mrr,596.9096,602.4807,-0.0038,True
+tenure_months,10.5672,11.1096,-0.0575,True
+is_basic,0.6334,0.6242,0.0191,True
+is_monthly,0.6161,0.6188,-0.0056,True

@@ -1,0 +1,54 @@
+{
+  "train_rows": 85793,
+  "train_snapshots": [
+    "2024-03-01",
+    "2024-06-01",
+    "2024-09-01",
+    "2024-12-01",
+    "2025-03-01"
+  ],
+  "validation": {
+    "rows": 24461,
+    "churn_rate": 0.1035,
+    "roc_auc": 0.8792,
+    "pr_auc": 0.4843,
+    "brier": 0.0696,
+    "accuracy_at_0.5": 0.9063,
+    "baseline_accuracy_predict_no_churn": 0.8965,
+    "threshold": 0.25,
+    "accuracy": 0.875,
+    "precision": 0.423,
+    "recall": 0.5707,
+    "f1": 0.4859,
+    "top_decile_lift": 4.62,
+    "top_decile_capture_rate": 0.4625,
+    "confusion_matrix": {
+      "tn": 19958,
+      "fp": 1971,
+      "fn": 1087,
+      "tp": 1445
+    }
+  },
+  "test": {
+    "rows": 27050,
+    "churn_rate": 0.1009,
+    "roc_auc": 0.8732,
+    "pr_auc": 0.4754,
+    "brier": 0.069,
+    "accuracy_at_0.5": 0.9099,
+    "baseline_accuracy_predict_no_churn": 0.8991,
+    "threshold": 0.25,
+    "accuracy": 0.8748,
+    "precision": 0.4084,
+    "recall": 0.5383,
+    "f1": 0.4644,
+    "top_decile_lift": 4.55,
+    "top_decile_capture_rate": 0.4555,
+    "confusion_matrix": {
+      "tn": 22193,
+      "fp": 2128,
+      "fn": 1260,
+      "tp": 1469
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "NOTE": "SIMULATED outcomes with an assumed 20% relative effect; not a real result",
+  "sample_ratio_mismatch_p": 0.633,
+  "srm_ok": true,
+  "n_treatment": 1495,
+  "n_control": 1469,
+  "churn_treatment": 0.3572,
+  "churn_control": 0.4922,
+  "absolute_difference": -0.135,
+  "ci95_absolute_difference": [
+    -0.1702,
+    -0.0997
+  ],
+  "relative_change": -0.2743,
+  "z": -7.435,
+  "p_value": 0.0,
+  "significant": true,
+  "retained_mrr_per_treated_customer": 80.57,
+  "campaign_cost_per_treated_customer": 212.66,
+  "annualised_value_per_treated_customer": 966.86,
+  "roi": 3.55
+}
