@@ -1,0 +1,209 @@
+dimension,segment,months_since_signup,customers_observed,customers_active,logo_retention
+Acquisition channel,Organic,0,14658,14658,1.0
+Acquisition channel,Organic,1,14107,13305,0.9431
+Acquisition channel,Organic,2,13555,12026,0.8872
+Acquisition channel,Organic,3,13022,10919,0.8385
+Acquisition channel,Organic,4,12489,10122,0.8105
+Acquisition channel,Organic,5,11938,9355,0.7836
+Acquisition channel,Organic,6,11398,8677,0.7613
+Acquisition channel,Organic,7,10884,8054,0.74
+Acquisition channel,Organic,8,10374,7439,0.7171
+Acquisition channel,Organic,9,9885,6866,0.6946
+Acquisition channel,Organic,10,9441,6371,0.6748
+Acquisition channel,Organic,11,8974,5878,0.655
+Acquisition channel,Organic,12,8511,4597,0.5401
+Acquisition channel,Outbound Sales,0,9416,9416,1.0
+Acquisition channel,Outbound Sales,1,9088,8758,0.9637
+Acquisition channel,Outbound Sales,2,8765,8140,0.9287
+Acquisition channel,Outbound Sales,3,8432,7565,0.8972
+Acquisition channel,Outbound Sales,4,8112,7122,0.878
+Acquisition channel,Outbound Sales,5,7815,6716,0.8594
+Acquisition channel,Outbound Sales,6,7457,6269,0.8407
+Acquisition channel,Outbound Sales,7,7158,5904,0.8248
+Acquisition channel,Outbound Sales,8,6830,5542,0.8114
+Acquisition channel,Outbound Sales,9,6488,5163,0.7958
+Acquisition channel,Outbound Sales,10,6178,4840,0.7834
+Acquisition channel,Outbound Sales,11,5879,4519,0.7687
+Acquisition channel,Outbound Sales,12,5573,3561,0.639
+Acquisition channel,Paid Search,0,12773,12773,1.0
+Acquisition channel,Paid Search,1,12254,11110,0.9066
+Acquisition channel,Paid Search,2,11754,9742,0.8288
+Acquisition channel,Paid Search,3,11300,8645,0.765
+Acquisition channel,Paid Search,4,10856,7976,0.7347
+Acquisition channel,Paid Search,5,10388,7315,0.7042
+Acquisition channel,Paid Search,6,9934,6705,0.675
+Acquisition channel,Paid Search,7,9509,6144,0.6461
+Acquisition channel,Paid Search,8,9061,5655,0.6241
+Acquisition channel,Paid Search,9,8655,5221,0.6032
+Acquisition channel,Paid Search,10,8223,4793,0.5829
+Acquisition channel,Paid Search,11,7828,4404,0.5626
+Acquisition channel,Paid Search,12,7442,3174,0.4265
+Acquisition channel,Partner,0,5328,5328,1.0
+Acquisition channel,Partner,1,5119,4905,0.9582
+Acquisition channel,Partner,2,4928,4529,0.919
+Acquisition channel,Partner,3,4742,4209,0.8876
+Acquisition channel,Partner,4,4532,3938,0.8689
+Acquisition channel,Partner,5,4317,3676,0.8515
+Acquisition channel,Partner,6,4114,3426,0.8328
+Acquisition channel,Partner,7,3925,3184,0.8112
+Acquisition channel,Partner,8,3738,2969,0.7943
+Acquisition channel,Partner,9,3579,2794,0.7807
+Acquisition channel,Partner,10,3398,2619,0.7707
+Acquisition channel,Partner,11,3218,2425,0.7536
+Acquisition channel,Partner,12,3036,1949,0.642
+Acquisition channel,Referral,0,7825,7825,1.0
+Acquisition channel,Referral,1,7501,7225,0.9632
+Acquisition channel,Referral,2,7191,6710,0.9331
+Acquisition channel,Referral,3,6885,6204,0.9011
+Acquisition channel,Referral,4,6612,5815,0.8795
+Acquisition channel,Referral,5,6354,5478,0.8621
+Acquisition channel,Referral,6,6077,5129,0.844
+Acquisition channel,Referral,7,5804,4805,0.8279
+Acquisition channel,Referral,8,5537,4489,0.8107
+Acquisition channel,Referral,9,5286,4208,0.7961
+Acquisition channel,Referral,10,5033,3930,0.7808
+Acquisition channel,Referral,11,4782,3675,0.7685
+Acquisition channel,Referral,12,4538,3094,0.6818
+Billing cycle,annual,0,15568,15568,1.0
+Billing cycle,annual,1,14955,14955,1.0
+Billing cycle,annual,2,14391,14391,1.0
+Billing cycle,annual,3,13841,13841,1.0
+Billing cycle,annual,4,13291,13291,1.0
+Billing cycle,annual,5,12766,12766,1.0
+Billing cycle,annual,6,12194,12194,1.0
+Billing cycle,annual,7,11663,11663,1.0
+Billing cycle,annual,8,11110,11110,1.0
+Billing cycle,annual,9,10596,10596,1.0
+Billing cycle,annual,10,10105,10105,1.0
+Billing cycle,annual,11,9597,9597,1.0
+Billing cycle,annual,12,9100,6104,0.6708
+Billing cycle,monthly,0,34432,34432,1.0
+Billing cycle,monthly,1,33114,30348,0.9165
+Billing cycle,monthly,2,31802,26756,0.8413
+Billing cycle,monthly,3,30540,23701,0.7761
+Billing cycle,monthly,4,29310,21682,0.7397
+Billing cycle,monthly,5,28046,19774,0.7051
+Billing cycle,monthly,6,26786,18012,0.6724
+Billing cycle,monthly,7,25617,16428,0.6413
+Billing cycle,monthly,8,24430,14984,0.6133
+Billing cycle,monthly,9,23297,13656,0.5862
+Billing cycle,monthly,10,22168,12448,0.5615
+Billing cycle,monthly,11,21084,11304,0.5361
+Billing cycle,monthly,12,20000,10271,0.5135
+Company size,1-10,0,17401,17401,1.0
+Company size,1-10,1,16703,15408,0.9225
+Company size,1-10,2,16067,13706,0.8531
+Company size,1-10,3,15417,12234,0.7935
+Company size,1-10,4,14807,11299,0.7631
+Company size,1-10,5,14183,10377,0.7317
+Company size,1-10,6,13523,9503,0.7027
+Company size,1-10,7,12894,8731,0.6771
+Company size,1-10,8,12291,8020,0.6525
+Company size,1-10,9,11720,7397,0.6311
+Company size,1-10,10,11156,6812,0.6106
+Company size,1-10,11,10598,6244,0.5892
+Company size,1-10,12,10079,4663,0.4626
+Company size,1000+,0,2532,2532,1.0
+Company size,1000+,1,2433,2395,0.9844
+Company size,1000+,2,2342,2272,0.9701
+Company size,1000+,3,2243,2151,0.959
+Company size,1000+,4,2167,2060,0.9506
+Company size,1000+,5,2072,1952,0.9421
+Company size,1000+,6,1978,1850,0.9353
+Company size,1000+,7,1879,1743,0.9276
+Company size,1000+,8,1790,1639,0.9156
+Company size,1000+,9,1709,1555,0.9099
+Company size,1000+,10,1619,1471,0.9086
+Company size,1000+,11,1531,1379,0.9007
+Company size,1000+,12,1451,1171,0.807
+Company size,11-50,0,15186,15186,1.0
+Company size,11-50,1,14641,13741,0.9385
+Company size,11-50,2,14047,12442,0.8857
+Company size,11-50,3,13518,11351,0.8397
+Company size,11-50,4,12971,10557,0.8139
+Company size,11-50,5,12425,9805,0.7891
+Company size,11-50,6,11871,9090,0.7657
+Company size,11-50,7,11371,8453,0.7434
+Company size,11-50,8,10856,7865,0.7245
+Company size,11-50,9,10345,7268,0.7026
+Company size,11-50,10,9824,6717,0.6837
+Company size,11-50,11,9319,6195,0.6648
+Company size,11-50,12,8828,4813,0.5452
+Company size,201-1000,0,5016,5016,1.0
+Company size,201-1000,1,4805,4684,0.9748
+Company size,201-1000,2,4622,4402,0.9524
+Company size,201-1000,3,4450,4151,0.9328
+Company size,201-1000,4,4253,3901,0.9172
+Company size,201-1000,5,4072,3681,0.904
+Company size,201-1000,6,3883,3451,0.8887
+Company size,201-1000,7,3728,3267,0.8763
+Company size,201-1000,8,3559,3080,0.8654
+Company size,201-1000,9,3394,2901,0.8547
+Company size,201-1000,10,3243,2746,0.8467
+Company size,201-1000,11,3104,2594,0.8357
+Company size,201-1000,12,2945,2167,0.7358
+Company size,51-200,0,9865,9865,1.0
+Company size,51-200,1,9487,9075,0.9566
+Company size,51-200,2,9115,8325,0.9133
+Company size,51-200,3,8753,7655,0.8746
+Company size,51-200,4,8403,7156,0.8516
+Company size,51-200,5,8060,6725,0.8344
+Company size,51-200,6,7725,6312,0.8171
+Company size,51-200,7,7408,5897,0.796
+Company size,51-200,8,7044,5490,0.7794
+Company size,51-200,9,6725,5131,0.763
+Company size,51-200,10,6431,4807,0.7475
+Company size,51-200,11,6129,4489,0.7324
+Company size,51-200,12,5797,3561,0.6143
+Overall,All customers,0,50000,50000,1.0
+Overall,All customers,1,48069,45303,0.9425
+Overall,All customers,2,46193,41147,0.8908
+Overall,All customers,3,44381,37542,0.8459
+Overall,All customers,4,42601,34973,0.8209
+Overall,All customers,5,40812,32540,0.7973
+Overall,All customers,6,38980,30206,0.7749
+Overall,All customers,7,37280,28091,0.7535
+Overall,All customers,8,35540,26094,0.7342
+Overall,All customers,9,33893,24252,0.7155
+Overall,All customers,10,32273,22553,0.6988
+Overall,All customers,11,30681,20901,0.6812
+Overall,All customers,12,29100,16375,0.5627
+Plan,Basic,0,24924,24924,1.0
+Plan,Basic,1,23952,21965,0.917
+Plan,Basic,2,23000,19409,0.8439
+Plan,Basic,3,22054,17209,0.7803
+Plan,Basic,4,21162,15791,0.7462
+Plan,Basic,5,20220,14430,0.7136
+Plan,Basic,6,19318,13231,0.6849
+Plan,Basic,7,18484,12156,0.6576
+Plan,Basic,8,17611,11140,0.6326
+Plan,Basic,9,16774,10203,0.6083
+Plan,Basic,10,15921,9322,0.5855
+Plan,Basic,11,15153,8528,0.5628
+Plan,Basic,12,14377,6515,0.4532
+Plan,Enterprise,0,7099,7099,1.0
+Plan,Enterprise,1,6810,6741,0.9899
+Plan,Enterprise,2,6547,6408,0.9788
+Plan,Enterprise,3,6301,6112,0.97
+Plan,Enterprise,4,6038,5816,0.9632
+Plan,Enterprise,5,5806,5560,0.9576
+Plan,Enterprise,6,5545,5275,0.9513
+Plan,Enterprise,7,5313,5019,0.9447
+Plan,Enterprise,8,5073,4765,0.9393
+Plan,Enterprise,9,4842,4521,0.9337
+Plan,Enterprise,10,4602,4281,0.9302
+Plan,Enterprise,11,4383,4044,0.9227
+Plan,Enterprise,12,4145,3320,0.801
+Plan,Pro,0,17977,17977,1.0
+Plan,Pro,1,17307,16597,0.959
+Plan,Pro,2,16646,15330,0.9209
+Plan,Pro,3,16026,14221,0.8874
+Plan,Pro,4,15401,13366,0.8679
+Plan,Pro,5,14786,12550,0.8488
+Plan,Pro,6,14117,11700,0.8288
+Plan,Pro,7,13483,10916,0.8096
+Plan,Pro,8,12856,10189,0.7925
+Plan,Pro,9,12277,9528,0.7761
+Plan,Pro,10,11750,8950,0.7617
+Plan,Pro,11,11145,8329,0.7473
+Plan,Pro,12,10578,6540,0.6183
