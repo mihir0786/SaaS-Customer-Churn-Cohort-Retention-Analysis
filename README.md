@@ -160,19 +160,19 @@ Only about 10% of customers churn in a 90-day window, so predicting "nobody chur
 - **Channel quality.** Referral customers retain 68% at a year versus 43% for Paid Search, a 25-point gap that should feed into acquisition budgets (lifetime value by channel).
 - **Early churn.** The steepest monthly losses are in months 1-3, which points to onboarding.
 
-![Cohort heatmap](outputs/figures/cohort_retention_heatmap.png)
+![Cohort heatmap](Output/figures/cohort_retention_heatmap.png)
 
 Each row of the heatmap is one cohort's decay; each column compares cohorts at the same age, which shows whether newer cohorts retain better or worse than older ones.
 
 ### 7.2 Churn rate, ARPU and the price increase
 
-![Churn and ARPU trend](outputs/figures/churn_and_arpu_trend.png)
+![Churn and ARPU trend](Output/figures/churn_and_arpu_trend.png)
 
 Monthly logo churn ran 3.5-4% and rose to **5.6% in Aug 2024 and 5.3% in Sep 2024**, after the Jul 2024 Basic price increase, before returning to about 3.6% by Dec 2025. ARPU rose from $1,021 to $1,535, driven by a growing share of larger customers and by the price increase itself. Gross MRR churn sits near 2% a month, well below logo churn, because the customers who leave are mostly small. Monthly net MRR retention is about 98%. By Dec 2025: 29,638 active customers and $45.5M MRR.
 
 ### 7.3 Revenue at risk by segment
 
-![Segment revenue at risk](outputs/figures/segment_revenue_at_risk.png)
+![Segment revenue at risk](Output/figures/segment_revenue_at_risk.png)
 
 | Rank | Segment | Customers | Current MRR | ARPU | Monthly MRR churn | 12-month MRR at risk | Share |
 |---|---|---|---|---|---|---|---|
@@ -196,11 +196,11 @@ The top 3 high-value segments hold **49% of all MRR at risk** while being 15% of
 | Confusion matrix at 0.25 | TP 1,469 · FP 2,128 · FN 1,260 · TN 22,193 |
 | Top-decile lift | **4.55x**; the riskiest 10% contain 45.6% of churners |
 
-![Cumulative gains](outputs/figures/cumulative_gains.png)
+![Cumulative gains](Output/figures/cumulative_gains.png)
 
 **Drivers (largest standardized coefficients).** Being able to cancel in the window dominates: annual customers not near renewal had zero churn in the test quarter versus 14.8% for the rest. Larger companies, higher MRR per seat, more features used, higher seat utilization and Referral acquisition lower risk; Paid Search acquisition and more support tickets raise it. Because MRR, seats and plan are correlated, read individual coefficients with care; the model's job is ranking, not causal explanation.
 
-![Model coefficients](outputs/figures/model_coefficients.png)
+![Model coefficients](Output/figures/model_coefficients.png)
 
 **Scoring Dec 2025 (29,638 active customers):**
 
