@@ -141,7 +141,7 @@ Only about 10% of customers churn in a 90-day window, so predicting "nobody chur
 
 ### 7.1 Cohort retention
 
-![Retention curves by plan](outputs/figures/retention_curves_by_plan.png)
+![Retention curves by plan](Output/figures/retention_curves_by_plan.png)
 
 | Segment | Month 1 | Month 3 | Month 6 | Month 12 |
 |---|---|---|---|---|
