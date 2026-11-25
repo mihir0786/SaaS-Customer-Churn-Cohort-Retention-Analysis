@@ -1,295 +1,407 @@
-# SaaS Customer Churn & Cohort Retention Analysis: Project Report
+# SaaS Customer Churn & Retention Analytics
 
-**Author:** Mihir Bagadia  ·  **Stack:** SQL (DuckDB: CTEs, window functions), Python (pandas, scikit-learn, statsmodels, SciPy, Matplotlib), Tableau  ·  **Data:** 50,000 B2B SaaS customers, Jan 2023 - Dec 2025 (synthetic)
+### From subscription data to actionable retention decisions
+**Author:** Mihir Bagadia 
 
-## 1. Executive summary
+**SQL (DuckDB) · Python · Cohort Analysis · Business Intelligence · Predictive Modeling · A/B Testing**
 
-This project analyses why and when subscription customers leave a B2B SaaS company, and who is likely to leave next. SQL builds monthly acquisition cohorts, 12-month retention curves, ARPU, churn rates and an MRR bridge. A segment analysis finds where recurring revenue is most at risk, a logistic-regression model predicts 90-day churn, and an A/B testing framework sizes and analyses a retention campaign. Tableau-ready extracts feed three dashboards.
+A complete, reproducible analytics project exploring **when SaaS customers leave, which segments put recurring revenue at risk, who is likely to churn next, and how a retention campaign could be evaluated**.
 
-| Finding | Value |
-|---|---|
-| Customers analysed | 50,000 (550,995 customer-months, 20,362 cancellations) |
-| 12-month logo retention | 56% overall; Basic 45%, Pro 62%, Enterprise 80% |
-| Monthly logo churn | about 3.5-4%; spiked to 5.6% after the Jul-2024 Basic price increase |
-| ARPU | $1,021 (Jan 2023) to $1,535 (Dec 2025) |
-| Top 3 high-value segments at risk | Enterprise / 1000+ ($2.01M), Enterprise / 201-1000 ($1.30M), Pro / 201-1000 ($1.16M) of 12-month MRR at risk: **49% of the total** |
-| Churn model (out-of-time test) | ROC-AUC **0.873**; riskiest 10% of customers contain **46% of churners** (4.6x lift) |
-| A/B test design | 808 customers per arm detect a 15% churn reduction; 1,482 per arm available |
+> **Project transparency:** This portfolio project uses **synthetic B2B SaaS data**. Model results are evaluated on simulated customer histories. The A/B test is a **simulation with an assumed treatment effect**, not an experiment conducted with real customers. Tableau-ready CSV exports are available; a published Tableau workbook has not been verified.
 
-> **Important:** the data is synthetic, generated with known churn drivers, so findings show the method works rather than describe a real company. Section 9 lists what that means for each result.
+---
 
-## 2. Problem statement
+## 📌 Project at a glance
 
-A subscription company earns revenue only while customers keep paying. Losing customers (churn) cuts monthly recurring revenue (MRR), and acquiring replacements costs far more than keeping existing ones. Leadership needs to know:
+| | Result |
+|---|---:|
+| Customers analyzed | **50,000** |
+| Monthly subscription usage records | **550,995** |
+| Recorded cancellations | **20,362** |
+| Monthly signup cohorts | **36** (Jan 2023–Dec 2025) |
+| Subscription plan × company-size segments | **15** |
+| **ROC-AUC**, held-out Sep 2025 churn model | **0.873** |
+| Actual churners captured by highest-risk **10%** | **45.6%** (**4.56× lift**) |
+| Active accounts scored in Dec 2025 | **29,638** |
+| High-risk customers selected for A/B test design | **2,964** |
 
-1. How quickly does each signup cohort lose customers, and does it differ by plan, channel, company size or billing cycle?
-2. What are ARPU and the monthly churn rate, and how did a 2024 price increase affect churn?
-3. Which **high-value** segments put the most MRR at risk over the next 12 months?
-4. Which active customers are most likely to cancel in the next 90 days, and what behaviors predict it?
-5. If Customer Success runs a retention offer, how big must the test be and how do we judge it?
+### The business problem
 
-## 3. Dataset
+For a subscription business, growing signups does not guarantee healthy growth. Customers may stop using the product, downgrade, or cancel—reducing predictable recurring revenue.
 
-### 3.1 Files and schema
+A data analyst needs to answer four connected questions:
 
-| File | Rows | Grain | Columns |
-|---|---|---|---|
-| customers.csv | 50,000 | customer | customer_id, signup_date, plan (Basic, Pro, Enterprise), company_size (1-10, 11-50, 51-200, 201-1000, 1000+), region (North America, EMEA, APAC, LATAM), acquisition_channel (Organic, Paid Search, Referral, Partner, Outbound Sales), billing_cycle (monthly, annual), seats_at_signup |
-| monthly_usage.csv | 550,995 | customer x paid month | customer_id, month, mrr, seats, active_users, logins, features_used (of 20), support_tickets, payment_failed (0/1), nps_score (quarterly survey, about 25% response) |
-| cancellations.csv | 20,362 | churned customer | customer_id, cancel_date, cancel_reason |
+1. **When and where are customers leaving?** Examine lifecycle retention, subscription plans, company sizes, and acquisition channels.
+2. **How much revenue is exposed?** Monitor churn and recurring revenue, then rank account segments by financial exposure.
+3. **Who should Customer Success prioritize?** Predict 90-day churn risk and create an outreach list.
+4. **Would an intervention work?** Design a randomized experiment to evaluate retention offers *before* recommending a rollout.
 
-### 3.2 How it is generated (`scripts/generate_data.py`)
-- **Signups** grow about 2% a month from Jan 2023 to Dec 2025 (36 cohorts). Plan, channel and billing cycle depend on company size, so larger firms buy bigger plans through sales.
-- **Pricing.** $10 / $25 / $50 per seat per month for Basic / Pro / Enterprise, 15% off for annual billing. Basic rises 20% to $12 in Jul 2024. MRR = seats x price.
-- **Hidden account health.** Each customer has a health score that drifts monthly. Health drives every observable usage metric, so usage declines before a cancellation, as in real products.
-- **Churn odds** each month depend on health, plan, company size, channel, region, the first three months of tenure (onboarding risk), a failed payment that month (involuntary churn) and the three months after the price increase. Annual customers can only leave at renewal, so a whole year of risk lands at month 12.
-- **Seats** grow for healthy accounts and shrink for unhealthy ones, which creates expansion and contraction MRR.
+**What this project delivers:** A SQL-powered analytics pipeline, business KPIs, visual analysis, a churn-risk scoring model, and a fully specified A/B test framework.
 
-A fixed random seed (42) means every number in this report reproduces exactly.
+---
 
-### 3.3 Real-data alternatives
-Any subscription export with these three tables works unchanged. Public options: the IBM Telco Customer Churn dataset on Kaggle (one snapshot: suits the model but not cohorts) and the KKBox churn challenge on Kaggle (music subscriptions with transactions and logs: suits both). Neither is B2B SaaS.
+## 🔄 End-to-end workflow
 
-## 4. Workflow
-
-`python run_all.py` runs six steps in about 20 seconds on a laptop:
-
-1. **Generate data:** `scripts/generate_data.py` → `data/raw/`.
-2. **SQL in DuckDB:** `src/run_sql.py` loads the CSVs into `outputs/saas.duckdb` and runs `sql/01`-`05`, exporting each result table to `outputs/tables/`.
-3. **Charts:** `src/cohort_charts.py` → `outputs/figures/`.
-4. **Churn model:** `src/churn_model.py` trains, tests and scores customers.
-5. **A/B test:** `src/ab_test.py` sizes the experiment, assigns arms, checks balance and analyses a simulated readout.
-6. **Tableau extracts:** `src/export_tableau.py` → `outputs/tableau/`.
-
-DuckDB was chosen because it runs in-process with no server, and its SQL is close to Postgres, Snowflake and BigQuery. Moving to BigQuery means changing date functions only: `DATE_DIFF('month', a, b)` becomes `DATE_DIFF(b, a, MONTH)` and `d + INTERVAL 1 MONTH` becomes `DATE_ADD(d, INTERVAL 1 MONTH)`.
-
-## 5. Methodology: cohorts, KPIs and revenue at risk (SQL)
-
-### 5.1 Definitions
-- **Cohort:** the calendar month of signup; month 0 is the signup month.
-- **Churn:** a customer churns in month M if they paid in M-1 and not in M.
-- **Logo retention at month k:** customers still paying ÷ customers in the cohort at month 0.
-- **Revenue retention at month k:** cohort MRR at month k ÷ cohort MRR at month 0 (includes expansion).
-- **ARPU:** MRR ÷ active customers. **Logo churn rate:** churned in M ÷ active in M-1. **Gross MRR churn:** churned MRR ÷ starting MRR.
-
-### 5.2 `01_customer_months.sql`: base table
-Joins usage to customer attributes and adds, per customer ordered by month: `LAG(month)`, `LEAD(month)`, `LAG(mrr)` and `ROW_NUMBER()`. `LEAD(month) IS NULL` before the last data month marks the last paid month, which is how churn is detected without relying on the cancellations file.
-
-### 5.3 `02_cohort_retention.sql`: cohort triangle and curves
-```sql
-WITH cohort_activity AS (
-    SELECT cohort_month, months_since_signup,
-           COUNT(DISTINCT customer_id) AS active_customers, SUM(mrr) AS mrr
-    FROM customer_months GROUP BY 1, 2
-)
-SELECT *,
-       active_customers / FIRST_VALUE(active_customers) OVER c AS logo_retention,
-       mrr / FIRST_VALUE(mrr) OVER c                           AS revenue_retention
-FROM cohort_activity
-WINDOW c AS (PARTITION BY cohort_month ORDER BY months_since_signup);
+```mermaid
+flowchart TD
+    A["Synthetic B2B SaaS data<br/>50,000 customer accounts"] --> B["Input CSV files<br/>customers · monthly_usage · cancellations"]
+    B --> C["Python ingestion<br/>src/run_sql.py"]
+    C --> D[("DuckDB<br/>Output/saas.duckdb")]
+    D --> E["SQL foundation<br/>01_customer_months.sql"]
+    E --> F["Cohorts & segment retention<br/>02_cohort_retention.sql"]
+    E --> G["Customer and revenue KPIs<br/>03_monthly_kpis.sql"]
+    E --> H["Segment revenue at risk<br/>04_segment_revenue_at_risk.sql"]
+    E --> I["Behavioral churn features<br/>05_churn_features.sql"]
+    F --> J["SQL result CSVs"]
+    G --> J
+    H --> J
+    I --> J
+    J --> K["Python / Matplotlib<br/>Analysis charts"]
+    J --> L["scikit-learn<br/>Churn model + validation"]
+    L --> M["Dec 2025 customer risk scores<br/>Rank customers by churn probability"]
+    L --> N["Held-out model metrics"]
+    M --> O["A/B test framework<br/>Design, assignment, balance"]
+    N --> O
+    O --> P["SIMULATED treatment outcomes<br/>Significance + illustrative ROI"]
+    J --> Q["BI-ready CSV exports"]
+    M --> Q
+    K --> R["Portfolio visualizations"]
+    Q --> S["Tableau / Power BI<br/>Ready for dashboard development"]
 ```
-Segment curves (by plan, channel, size, billing cycle) average only cohorts old enough to be observed at each age. Without this, young cohorts that have not reached month 12 would drag the curve down.
 
-### 5.4 `03_monthly_kpis.sql`: churn rate, ARPU and the MRR bridge
-For each month: active customers, MRR, ARPU, new and churned customers, logo churn rate and its 3-month moving average (`AVG() OVER (ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)`), and the MRR bridge: new + expansion − contraction − churned. **Validation:** a running `SUM() OVER (ORDER BY month)` of net new MRR equals total MRR in every month (difference $0.00), which proves the churn and movement logic accounts for every dollar.
+**How the pieces connect:** The SQL customer-month table is the shared foundation. Retention, revenue, and modeling queries reuse it. Python evaluates the model; its risk scores define the eligible customers for the A/B test. The output files can then support a BI dashboard and Customer Success recommendations.
 
-### 5.5 `04_segment_revenue_at_risk.sql`: where MRR is at risk
-Fifteen segments (3 plans x 5 company sizes). For each: current customers and MRR, ARPU, and the average monthly logo and MRR churn over the last 6 months. MRR at risk over 12 months assumes the recent churn rate continues:
+**Pipeline command:** `python run_all.py --skip-data` uses the CSV files currently stored in `Data/`.
 
-`MRR at risk (12 months) = current MRR × (1 − (1 − monthly MRR churn)^12)`
+---
 
-A segment is **high-value** when its ARPU is at or above the company ARPU. `RANK() OVER (ORDER BY mrr_at_risk_12m DESC)` ranks all segments and, separately, the high-value ones; `NTILE(3)` labels churn terciles.
+## 📊 1. Customer retention — *When do customers leave?*
 
-### 5.6 `05_churn_features.sql`: model features
-At eight quarterly snapshot months (Mar 2024 to Dec 2025), take every customer paying that month, summarise the three months ending there, and label `churned_next_90d = 1` if they are not paying three months later (null for Dec 2025, where the future is unknown). `ARG_MIN(x, month)` picks the start-of-window value for trend features; `ARG_MAX(nps_score, month)` picks the latest survey answer.
+**Business need.** Overall churn can hide *when* customers disengage. A company must distinguish early onboarding problems from annual renewal risk.
 
-## 6. Churn prediction model
+**Method used.** We created **36 signup-month cohorts**, from January 2023 through December 2025. Each cohort groups customers who joined during the same calendar month; we then follow the group for up to **12 months after signup**.
 
-### 6.1 Features (21 inputs)
+**Why signup-month cohorts?** They compare customers at the same point in their subscription lifecycle. Monthly granularity also matches the underlying usage records, while offering more detail than quarterly or annual cohorts.
 
-| Feature | Definition | Why it matters |
+**SQL implementation:** [`Sql/02_cohort_retention.sql`](Sql/02_cohort_retention.sql), built on [`Sql/01_customer_months.sql`](Sql/01_customer_months.sql).
+
+```sql
+-- Monthly cohort and lifecycle age, from the customer-month base
+CAST(DATE_TRUNC('month', c.signup_date) AS DATE) AS cohort_month
+
+-- Then, for each cohort and month since signup:
+COUNT(DISTINCT customer_id) AS active_customers
+```
+
+**Measures**
+
+- **Logo retention:** Customers paying at lifecycle month *k* ÷ customers paying at month 0.
+- **Revenue retention:** Cohort MRR at month *k* ÷ the cohort's starting MRR; expansion can affect this ratio.
+- **Segment retention:** Separate lifecycle curves by plan, company size, acquisition channel, and billing cycle. **These are one-dimensional segment curves, not fully crossed signup-month × plan × size cohorts.**
+
+### Illustrative findings from this synthetic dataset
+
+| Segment | Retention at month 12 |
+|---|---:|
+| **All customers** | **56.3%** |
+| Basic plan | 45.3% |
+| Pro plan | 61.8% |
+| Enterprise plan | 80.1% |
+
+**Business interpretation:** Basic accounts warrant closer investigation of early engagement, while Enterprise accounts show comparatively stronger retention. Annual subscribers have a pronounced renewal-period decline because the generator only permits annual-contract churn at renewal.
+
+**Potential action:** Review first-quarter onboarding, track plan-level product adoption, and start annual-renewal outreach ahead of renewal dates. These are **recommendations to test**, not proven causes or realized improvements.
+
+![Monthly signup cohort retention heatmap](Output/figures/cohort_retention_heatmap.png)
+
+![Retention curves by subscription plan](Output/figures/retention_curves_by_plan.png)
+
+---
+
+## 💰 2. Subscription performance — *Are we retaining customers and revenue?*
+
+**Business need.** Customer counts alone do not reveal whether the business is losing high-value accounts or expanding revenue from existing customers.
+
+**Method used.** SQL calculates a monthly operating scorecard in [`Sql/03_monthly_kpis.sql`](Sql/03_monthly_kpis.sql):
+
+| KPI | Calculation | Business purpose |
 |---|---|---|
-| plan, company_size, region, acquisition_channel, billing_cycle | one-hot encoded attributes | structural differences in churn |
-| tenure_months | months since signup | early months are riskiest |
-| log_mrr, log_seats | log of MRR and seats | account size and plan level |
-| can_cancel_in_window | 1 if monthly billing or an annual renewal falls in the next 3 months | annual customers cannot leave mid-term |
-| months_in_window | paid months in the 3-month window | marks brand-new accounts |
-| seat_utilization_3m, seat_utilization_change | active users ÷ seats, and its change | unused seats signal low value |
-| logins_per_user_3m, logins_per_user_change | logins per active user, and its change | depth of engagement |
-| features_used_3m, features_used_change | features used (of 20), and its change | breadth of adoption |
-| support_tickets_3m | tickets in the window | friction |
-| payment_failures_3m | failed payments in the window | involuntary churn |
-| mrr_change_pct_3m | MRR change over the window | contraction before churn |
-| last_nps, has_nps | latest survey score; missing flag | stated satisfaction |
+| **Logo churn rate** | Customers lost in month ÷ customers at start of month | Monitor subscriber loss |
+| **MRR** | Sum of recurring revenue from paying customers | Track current subscription revenue |
+| **ARPU** | MRR ÷ active paying customers | Understand account value |
+| **MRR bridge** | New MRR + expansion − contraction − churned MRR | Explain changes in recurring revenue |
+| **Net MRR retention** | (Starting MRR + expansion − contraction − churned MRR) ÷ starting MRR | Assess revenue retention excluding new customers |
 
-### 6.2 Training and testing
-Splits are **by time, never random**, so the test imitates real use (train on the past, predict the future):
+**Why SQL window functions?** `LAG()` compares a customer's current recurring revenue with the preceding paid record. `LEAD()` helps identify missing future paid months, while rolling averages smooth month-to-month churn fluctuations.
 
-| Split | Snapshots | Rows | Churn rate |
-|---|---|---|---|
-| Train | Mar, Jun, Sep, Dec 2024; Mar 2025 | 85,793 | 10-13% |
-| Validation (threshold choice) | Jun 2025 | 24,461 | 10.4% |
-| Test (reported once) | Sep 2025 | 27,050 | 10.1% |
-| Scoring (no label) | Dec 2025 | 29,638 | n/a |
+**Illustrative finding:** Churn increases around the simulated July 2024 Basic-plan price change. This is an association in a generator that explicitly includes a price-change effect—not causal evidence from a real-world pricing experiment.
 
-Pipeline: one-hot encoding for categories; median imputation and standardization for numbers; `LogisticRegression` (scikit-learn, L2, C = 1). Logistic regression was chosen for readable coefficients (odds ratios) and well-behaved probabilities, which the revenue-at-risk math needs. The alert threshold (0.25) maximizes F1 on the validation quarter.
+**Potential action:** Track churn and MRR together when evaluating pricing changes, and investigate whether high churn is concentrated among lower-value customer segments.
 
-### 6.3 Why accuracy is the wrong headline
-Only about 10% of customers churn in a 90-day window, so predicting "nobody churns" is already 89.9% accurate. The model's 91.0% accuracy at a 0.5 threshold is barely better. The metrics that matter are ROC-AUC (ranking quality), precision and recall at the chosen threshold, and **lift**: how much churn the riskiest customers contain compared with average.
+![Monthly logo churn and ARPU trend](Output/figures/churn_and_arpu_trend.png)
 
-## 7. Results
+---
 
-### 7.1 Cohort retention
+## 🎯 3. Revenue-at-risk segmentation — *Where should retention effort go?*
 
-![Retention curves by plan](Output/figures/retention_curves_by_plan.png)
+**Business need.** The segment with the *highest churn rate* is not necessarily the segment with the *greatest financial exposure*.
 
-| Segment | Month 1 | Month 3 | Month 6 | Month 12 |
-|---|---|---|---|---|
-| All customers | 94.3% | 84.6% | 77.5% | 56.3% |
-| Basic | 91.7% | 78.0% | 68.5% | 45.3% |
-| Pro | 95.9% | 88.7% | 82.9% | 61.8% |
-| Enterprise | 99.0% | 97.0% | 95.1% | 80.1% |
-| Referral | 96.3% | 90.1% | 84.4% | 68.2% |
-| Paid Search | 90.7% | 76.5% | 67.5% | 42.7% |
-| Company size 1-10 | 92.3% | 79.4% | 70.3% | 46.3% |
-| Company size 1000+ | 98.4% | 95.9% | 93.5% | 80.7% |
-| Annual billing | 100% | 100% | 100% | 67.1% |
-| Monthly billing | 91.7% | 77.6% | 67.2% | 51.4% |
+**Method used.** [`Sql/04_segment_revenue_at_risk.sql`](Sql/04_segment_revenue_at_risk.sql) divides accounts into **15 segments** (3 plans × 5 company-size bands), calculates recent logo and revenue churn, and projects the amount of the **current MRR base** potentially lost over a 12-month horizon:
 
-- **Month 12 cliff.** Annual contracts cannot leave mid-term, so their year of churn appears at renewal: annual retention drops from 100% at month 11 to 67% at month 12. Renewal outreach should start around month 9.
-- **Channel quality.** Referral customers retain 68% at a year versus 43% for Paid Search, a 25-point gap that should feed into acquisition budgets (lifetime value by channel).
-- **Early churn.** The steepest monthly losses are in months 1-3, which points to onboarding.
+```text
+12-month MRR at risk
+  = Current segment MRR × [1 − (1 − monthly MRR churn rate)^12]
+```
 
-![Cohort heatmap](Output/figures/cohort_retention_heatmap.png)
+This is a **scenario estimate**, assuming the recent churn rate remains constant. It is **not** 12 months of accumulated revenue losses and does not include new sales or future expansion.
 
-Each row of the heatmap is one cohort's decay; each column compares cohorts at the same age, which shows whether newer cohorts retain better or worse than older ones.
+**Why combine plan and company size?** Both characteristics help explain account value and different renewal behaviors; segmentation makes it possible to prioritize revenue exposure rather than churn percentage alone.
 
-### 7.2 Churn rate, ARPU and the price increase
+**Key insight:** In the earlier segment report, the largest high-value exposures were Enterprise / 1000+, Enterprise / 201–1000, and Pro / 201–1000. Their previously reported exposures were approximately **$2.01M**, **$1.30M**, and **$1.16M**, respectively. Refresh exact current rankings from `Output/tables/segment_revenue_at_risk.csv` after each run.
 
-![Churn and ARPU trend](Output/figures/churn_and_arpu_trend.png)
+**Potential action:** Give high-MRR accounts appropriate human review and prioritize retention spending using **risk × account value**, rather than churn rate alone.
 
-Monthly logo churn ran 3.5-4% and rose to **5.6% in Aug 2024 and 5.3% in Sep 2024**, after the Jul 2024 Basic price increase, before returning to about 3.6% by Dec 2025. ARPU rose from $1,021 to $1,535, driven by a growing share of larger customers and by the price increase itself. Gross MRR churn sits near 2% a month, well below logo churn, because the customers who leave are mostly small. Monthly net MRR retention is about 98%. By Dec 2025: 29,638 active customers and $45.5M MRR.
+![MRR at risk by customer segment](Output/figures/segment_revenue_at_risk.png)
 
-### 7.3 Revenue at risk by segment
+---
 
-![Segment revenue at risk](Output/figures/segment_revenue_at_risk.png)
+## 🤖 4. Churn prediction — *Which accounts are likely to leave next?*
 
-| Rank | Segment | Customers | Current MRR | ARPU | Monthly MRR churn | 12-month MRR at risk | Share |
-|---|---|---|---|---|---|---|---|
-| 1 | Enterprise / 1000+ | 1,276 | $14.81M | $11,608 | 1.21% | $2.01M | 22.0% |
-| 2 | Enterprise / 201-1000 | 1,674 | $9.30M | $5,557 | 1.24% | $1.30M | 14.2% |
-| 3 | Pro / 201-1000 | 1,590 | $4.67M | $2,934 | 2.36% | $1.16M | 12.7% |
-| 4 | Pro / 51-200 (not high-value) | 2,761 | $3.24M | $1,175 | 3.09% | $1.02M | 11.1% |
-| 5 | Pro / 1000+ | 669 | $4.11M | $6,144 | 2.03% | $0.90M | 9.8% |
+**Business need.** Reporting identifies historical problems. Customer Success also needs a forward-looking list of accounts to prioritize.
 
-The top 3 high-value segments hold **49% of all MRR at risk** while being 15% of customers. Their churn rates are low; their risk comes from size. That is the key insight: the segments with the highest churn rates (Basic / 1-10 at 5.3% a month) put little money at risk, so retention spend belongs with large accounts even though they churn least.
+**Method used.** [`Sql/05_churn_features.sql`](Sql/05_churn_features.sql) builds **quarterly customer snapshots**, using account characteristics and recent three-month behavior. [`src/churn_model.py`](src/churn_model.py) then trains a **logistic regression** classifier.
 
-### 7.4 Churn model
+### What the model considers
 
-| Metric (Sep 2025 test, 27,050 customers) | Value |
+| Feature category | Examples | Why relevant |
+|---|---|---|
+| Account attributes | Plan, company size, acquisition channel, billing type | Capture customer mix |
+| Subscription value | MRR, licensed seats, tenure | Capture commercial context |
+| Product engagement | Seat utilization, login activity, feature adoption | Surface disengagement |
+| Support and payment | Tickets, failed payments, NPS | Surface friction |
+| Renewal timing | Eligible to cancel within the prediction window | Reflect contract constraints |
+
+**Why logistic regression?** It offers a transparent, regularized baseline with interpretable coefficients and probability estimates. More complex classifiers might perform better, but that would require a fair benchmark—not an assumption.
+
+**Why time-based evaluation?** Train on earlier snapshots, select a threshold on a later validation snapshot, then evaluate on a still-later test snapshot. This more closely resembles predicting future customer behavior than randomly mixing rows from different dates.
+
+### Out-of-time test performance — September 2025
+
+| Metric | Result | What it tells us |
+|---|---:|---|
+| **ROC-AUC** | **0.873** | Good ability to rank churn risk in this synthetic dataset |
+| **PR-AUC** | **0.475** | Precision–recall quality when churn is less common |
+| Precision at threshold 0.25 | **40.9%** | Of flagged accounts, the proportion that churned |
+| Recall at threshold 0.25 | **53.9%** | Of churners, the proportion flagged |
+| **Top-decile capture** | **45.6%** | The highest-risk 10% contain almost half of actual test churners |
+| **Top-decile lift** | **4.56×** | Churner concentration relative to random targeting |
+
+**Why not emphasize accuracy?** With only about 10% churn in the test set, predicting “no churn” for everyone would already achieve approximately **89.9% accuracy**. Risk ranking, recall, precision, and lift are more actionable.
+
+![Churn model ROC curve](Output/figures/roc_curve.png)
+
+![Cumulative gains: highest-risk customers first](Output/figures/cumulative_gains.png)
+
+**Business output:** The model scores **29,638 active customers** in December 2025 and identifies **2,964 high-risk accounts**. The high-risk group has an estimated **$819,163** in current-MRR-weighted 90-day exposure, based on summed `churn_probability × MRR`.
+
+**Potential action:** Use the ranked list to direct outreach toward customers with high predicted risk, while recognizing that prediction does not establish which intervention will help them.
+
+---
+
+## 🧪 5. A/B testing — *Would a retention offer actually help?*
+
+**Business need.** A churn model can identify *who may leave*; it cannot prove that a discount or outreach campaign *prevents* churn. A randomized A/B test would help evaluate that causal question.
+
+**Proposed experiment**
+
+- **Population:** 2,964 customers in the highest-risk decile.
+- **Treatment:** Proactive Customer Success outreach plus **15% off for three months**.
+- **Control:** Normal experience without the offer.
+- **Primary metric:** 90-day logo churn.
+- **Additional measures:** Retained MRR and net revenue retention; discount cost, support tickets and downgrades as planned guardrails.
+- **Assignment:** Reproducible approximately 50/50 customer-level allocation using SHA-256 hashing.
+
+### Why design sample size before running the experiment?
+
+To reduce the risk of an underpowered test and avoid interpreting random fluctuations as meaningful business outcomes.
+
+| Planning assumption | Value |
+|---|---:|
+| Baseline control churn | **46.01%** |
+| Minimum detectable *relative* reduction | **15%** |
+| Target churn at that effect | **39.11%** |
+| Statistical significance threshold (α) | **0.05** |
+| Statistical power | **80%** |
+| **Required minimum sample** | **805 per group** |
+| Approximate customers available | **1,482 per group** |
+| Planned observation | Fixed 90-day outcome window |
+
+### Simulation readout — not a real experiment
+
+The code assumes a **20% reduction in treatment customers' churn probabilities** and generates hypothetical outcomes to exercise the statistical analysis.
+
+| Outcome | Simulated result |
+|---|---:|
+| Treatment customers | 1,495 |
+| Control customers | 1,469 |
+| Treatment churn | **36.79%** |
+| Control churn | **47.11%** |
+| Absolute churn-rate difference | **−10.32 percentage points** |
+| Relative churn-rate difference | **−21.9%** |
+| 95% confidence interval | **−13.85 to −6.78 percentage points** |
+| Two-proportion test | **p < 0.00001** |
+| Sample-ratio check | Passed; **p = 0.633** |
+| **Simplified, simulated ROI** | **252%** |
+
+**Why these tests?** A two-proportion Z-test compares churn rates; a confidence interval gives a plausible range for the difference; a sample-ratio check looks for unexpected allocation imbalance; and an ROI scenario translates the assumed retention effect into an illustrative business case.
+
+**Crucial interpretation:** These numbers **do not demonstrate that the offer works in reality**. The improvement was assumed by the simulator. A real campaign, observed outcomes, and guardrail monitoring would be needed before making a deployment recommendation.
+
+---
+
+## 🛠️ Why these technologies?
+
+| Tool / method | Where used | Why it fits this project |
+|---|---|---|
+| **DuckDB + SQL** | Ingestion, joins, window functions, aggregations, features | Embedded analytical database; no separate server required |
+| **Python + Pandas/NumPy** | Data handling and model preparation | Flexible DataFrame processing and numerical analysis |
+| **Monthly signup cohorts** | Retention analysis | Compare customers at the same subscription age |
+| **Logistic regression** | Churn prediction | Transparent baseline, probability scoring, explainable parameters |
+| **scikit-learn Pipeline** | Model preprocessing and evaluation | Reusable encoding, imputation, scaling and modeling |
+| **statsmodels + SciPy** | A/B test design and analysis | Power calculations, proportion tests and balance checks |
+| **Matplotlib** | Charts | Reproducible analysis figures |
+| **Tableau-ready CSV exports** | BI handoff | Easy input for future interactive dashboards |
+
+**Why DuckDB rather than MySQL, PostgreSQL, or Pandas alone?** All could complete this analysis. DuckDB was selected because the pipeline is a **local, batch analytical workload**, not an application that needs a database server, user transactions, or many simultaneous writers.
+
+---
+
+## 🗂️ Project structure
+
+```text
+SaaS-Customer-Churn-Cohort-Retention-Analysis/
+├── Data/
+│   ├── customers.csv
+│   ├── monthly_usage.csv
+│   └── cancellations.csv
+├── Sql/
+│   ├── 01_customer_months.sql
+│   ├── 02_cohort_retention.sql
+│   ├── 03_monthly_kpis.sql
+│   ├── 04_segment_revenue_at_risk.sql
+│   └── 05_churn_features.sql
+├── scripts/
+│   └── generate_data.py
+├── src/
+│   ├── config.py
+│   ├── run_sql.py
+│   ├── cohort_charts.py
+│   ├── churn_model.py
+│   ├── ab_test.py
+│   └── export_tableau.py
+├── Output/
+│   ├── tables/
+│   ├── figures/
+│   ├── tableau/
+│   └── saas.duckdb
+├── requirements.txt
+└── run_all.py
+```
+
+The database and generated outputs are created locally; some may not be versioned in Git.
+
+### Main deliverables
+
+| Output | Contents |
 |---|---|
-| ROC-AUC | **0.873** (validation 0.879) |
-| PR-AUC | 0.475 (a random model scores about 0.10) |
-| Brier score | 0.069 |
-| Accuracy at 0.5 | 91.0% vs 89.9% for "predict nobody churns" |
-| At threshold 0.25: precision / recall / F1 | 40.8% / 53.8% / 0.464 |
-| Confusion matrix at 0.25 | TP 1,469 · FP 2,128 · FN 1,260 · TN 22,193 |
-| Top-decile lift | **4.55x**; the riskiest 10% contain 45.6% of churners |
+| `Output/tables/cohort_retention.csv` | 36 monthly cohorts, by months since signup |
+| `Output/tables/retention_curves.csv` | Retention by plan, size, channel and billing cycle |
+| `Output/tables/monthly_kpis.csv` | MRR, ARPU, churn, revenue movement |
+| `Output/tables/segment_revenue_at_risk.csv` | 15 plan/size segment exposures |
+| `Output/tables/churn_features.csv` | Customer snapshot features and future-churn labels |
+| `Output/tables/model_metrics.json` | Validation and held-out test performance |
+| `Output/tableau/customer_churn_scores.csv` | Ranked customer-level churn probabilities |
+| `Output/tables/ab_test_design.json` | Experiment assumptions and sample-size analysis |
+| `Output/tables/ab_test_simulated_readout.json` | Explicitly simulated A/B outcomes |
+| `Output/figures/` | All generated Matplotlib visualizations |
+| `Output/tableau/` | Six BI-ready CSV datasets |
 
-![Cumulative gains](Output/figures/cumulative_gains.png)
+---
 
-**Drivers (largest standardized coefficients).** Being able to cancel in the window dominates: annual customers not near renewal had zero churn in the test quarter versus 14.8% for the rest. Larger companies, higher MRR per seat, more features used, higher seat utilization and Referral acquisition lower risk; Paid Search acquisition and more support tickets raise it. Because MRR, seats and plan are correlated, read individual coefficients with care; the model's job is ranking, not causal explanation.
+## ▶️ How to run
 
-![Model coefficients](Output/figures/model_coefficients.png)
-
-**Scoring Dec 2025 (29,638 active customers):**
-
-| Risk tier | Customers | Avg churn probability | MRR | Expected 90-day MRR at risk |
-|---|---|---|---|---|
-| High (top decile) | 2,964 | 46.9% | $1.78M | $819K |
-| Medium (deciles 8-9) | 5,928 | 19.2% | $5.21M | $974K |
-| Low | 20,746 | 2.8% | $38.50M | $788K |
-
-`outputs/tableau/customer_churn_scores.csv` is the account list Customer Success works from.
-
-### 7.5 A/B testing framework
-
-Campaign: High-tier customers get proactive Customer Success outreach and 15% off for 3 months; control gets business as usual.
-
-1. **Design.** Baseline 90-day churn for the riskiest decile is 45.9% (observed in the test quarter). Detecting a 15% relative reduction (to 39.0%) with α = 0.05 and 80% power needs **808 customers per arm** (Cohen's h, `statsmodels` `NormalIndPower`). With 1,482 per arm available, the smallest detectable reduction is 11.1%. Primary metric: 90-day churn. Secondary: retained MRR. Guardrails: discount cost, tickets, downgrades. Fixed 90-day horizon, no early stopping.
-2. **Assignment.** SHA-256 hash of `"retention-offer-2026q1:" + customer_id`; buckets 0-49 are treatment. Deterministic, auditable, re-randomized by changing the salt.
-3. **Balance.** Standardized mean differences are all under 0.06 in absolute value for churn probability, MRR, tenure, share on Basic and share on monthly billing (rule of thumb: under 0.1).
-4. **Analysis.** Sample-ratio-mismatch chi-square test, two-proportion z-test, 95% CI for the difference, relative change, retained MRR, campaign cost and ROI.
-
-**Simulated readout** (an assumed 20% true effect, used only to test the code; not a finding): treatment churn 35.7% vs control 49.2%, difference −13.5 points (95% CI −17.0 to −10.0), p < 0.001, sample-ratio check passed (p = 0.63).
-
-### 7.6 Tableau dashboards
-`tableau/DASHBOARD_SPEC.md` specifies three dashboards built on the CSVs in `outputs/tableau/`: **Retention overview** (KPI tiles, churn trend with the price-change annotation, MRR bridge), **Cohort decay** (heatmap with a logo / revenue toggle, curves switchable by dimension) and **Revenue at risk** (segment bars with the top 3 highlighted, ARPU vs churn quadrant, filterable at-risk account list). The workbook is built by hand in Tableau Public and linked from the README.
-
-## 8. Technologies
-
-| Area | Tools |
-|---|---|
-| SQL | DuckDB 1.x/2.x: CTEs, LAG, LEAD, ROW_NUMBER, FIRST_VALUE, RANK, NTILE, running SUM/AVG, ARG_MIN/ARG_MAX |
-| Python | pandas, NumPy |
-| Modeling | scikit-learn (Pipeline, ColumnTransformer, OneHotEncoder, StandardScaler, LogisticRegression, metrics) |
-| Statistics | statsmodels (power analysis, z-test), SciPy (chi-square) |
-| Visualization | Matplotlib (report charts), Tableau Public (dashboards) |
-| Reproducibility | fixed seeds, one-command runner, requirements.txt |
-
-## 9. Limitations
-
-1. **Synthetic data.** The churn drivers were designed into the generator, so the analysis rediscovers known effects. Model performance on real data is usually lower, and real usage data is messier (tracking gaps, plan migrations, reactivations).
-2. **Revenue-at-risk projection** assumes the last six months' churn rate holds for a year and ignores expansion, new sales and seasonality.
-3. **Churn definition** is non-payment; it does not separate voluntary from involuntary churn in the SQL (the cancellations file does), and it ignores downgrades.
-4. **The model** is linear and uses correlated features (MRR, seats, plan), so coefficients are not causal. Gradient boosting may rank better; logistic regression was kept for interpretability.
-5. **Snapshot overlap.** A customer appears in several training snapshots, so training rows are not independent; the out-of-time test guards against the leakage that matters.
-6. **The A/B readout is simulated.** The framework is real; the effect size is an assumption. ROI uses a simple 12-month value of retained MRR.
-7. **Tableau workbook** is not in the repo; it must be built from the spec.
-
-## 10. How to replicate and publish
+**Prerequisites:** Python and packages in `requirements.txt`.
 
 ```bash
-git clone https://github.com/<you>/saas-churn-cohort-analysis.git
-cd saas-churn-cohort-analysis
-python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python run_all.py                                     # ~20 seconds; everything lands in outputs/
-python run_all.py --skip-data                         # rerun analysis without regenerating data
+git clone https://github.com/mihir0786/SaaS-Customer-Churn-Cohort-Retention-Analysis.git
+cd SaaS-Customer-Churn-Cohort-Retention-Analysis
+python -m venv .venv
 ```
-Explore the SQL interactively: `duckdb outputs/saas.duckdb`, then `SELECT * FROM monthly_kpis;`.
 
-For GitHub: commit code, SQL, docs, `outputs/figures/` and the small CSVs in `outputs/tables/` and `outputs/tableau/`. Skip `data/raw/` and `outputs/saas.duckdb` (regenerated in seconds; already in `.gitignore`). Build the Tableau dashboards, publish them to Tableau Public, and put the link and screenshots at the top of the README.
+Activate the environment:
 
-## 11. Resume alignment and interview notes
+```powershell
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
 
-The resume bullets on 50,000+ customers, SQL window functions, cohorts, 12-month retention curves, ARPU, churn rates, 3 high-value segments, logistic regression, an A/B framework and Tableau all match this build. Two changes keep it accurate:
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
 
-- **Replace "83 correct churn predictions per 100".** It does not match this build, and accuracy is misleading at a 10% churn rate. Suggested wording: *"Built an out-of-time logistic-regression churn model (ROC-AUC 0.87); targeting the top risk decile reached 46% of churners (4.6x lift)."*
-- **Label the data** as synthetic, as the Bank Loan project already does, and build the Tableau dashboards before interviews.
+Install dependencies, then reuse the existing source CSVs:
 
-Questions to prepare:
+```bash
+pip install -r requirements.txt
+python run_all.py --skip-data
+```
 
-1. Why split by time instead of randomly? A random split leaks future behavior into training.
-2. Why is accuracy misleading here, and what did you use instead?
-3. Why do low-churn Enterprise segments top the revenue-at-risk list?
-4. How did you size the A/B test, and what would invalidate the result (sample-ratio mismatch, peeking)?
-5. What does the month-12 drop in the curves mean for the business?
+**Important path note:** The current `src/config.py` reads inputs from `Data/`, but `scripts/generate_data.py` still defaults to `data/raw/`. To **regenerate and analyze the same dataset**, explicitly run:
 
-## Appendix: file guide
+```bash
+python scripts/generate_data.py --out Data --customers 50000 --seed 42
+python run_all.py --skip-data
+```
 
-| File | What it does |
-|---|---|
-| `scripts/generate_data.py` | builds customers, monthly usage and cancellations |
-| `sql/01_customer_months.sql` | base customer-month table with LAG / LEAD / ROW_NUMBER |
-| `sql/02_cohort_retention.sql` | cohort triangle and segment retention curves |
-| `sql/03_monthly_kpis.sql` | churn rate, ARPU, MRR bridge, NRR |
-| `sql/04_segment_revenue_at_risk.sql` | segment ARPU, churn and 12-month MRR at risk, ranks |
-| `sql/05_churn_features.sql` | quarterly feature snapshots and 90-day labels |
-| `src/run_sql.py` | loads CSVs into DuckDB, runs the SQL, exports tables |
-| `src/cohort_charts.py` | retention, churn, ARPU and segment charts |
-| `src/churn_model.py` | trains, evaluates and scores the churn model |
-| `src/ab_test.py` | power analysis, hash assignment, balance check, readout |
-| `src/export_tableau.py` | Tableau data sources |
-| `tableau/DASHBOARD_SPEC.md` | dashboard build instructions |
-| `run_all.py` | runs everything in order |
+`src/run_sql.py` **deletes and rebuilds** `Output/saas.duckdb` each run. Back up manual database changes before rerunning.
+
+**Verify the latest numbers** from `Output/tables/model_metrics.json`, `Output/tables/ab_test_design.json`, `Output/tables/ab_test_simulated_readout.json`, and the output CSVs. If data or code changes, reported metrics may change.
+
+---
+
+## ⚠️ Interpretation and limitations
+
+- **Synthetic data:** The generator embeds churn drivers and renewal behavior. Observed patterns and model performance may not generalize to real customers.
+- **Cohort granularity:** Cohorts are monthly signup groups; segment curves are separate comparisons, not fully crossed cohort-by-plan-by-size tables.
+- **Churn definition:** Monthly SQL uses the absence of a following paid record. Model labels check payment status three months after a snapshot; this is not a detailed event-time survival model.
+- **Revenue scenarios:** Segment MRR exposure assumes recent churn persists. Customer-level expected MRR exposure is a probability-weighted measure, not a realized loss.
+- **Model interpretation:** Correlated predictors and coefficients must not be interpreted causally. Annual-renewal eligibility is particularly influential because of simulation rules.
+- **A/B simulation:** The treatment effect is explicitly assumed. ROI is annualized using a simplified value and cost calculation. Guardrails are specified but not fully evaluated against observed campaign data.
+- **BI status:** The project generates Matplotlib visualizations and Tableau-ready files; it does not automatically publish an interactive Tableau workbook.
+
+---
+
+## 📈 Business recommendations and next steps
+
+| Finding or capability | Suggested next business step | What still needs validation |
+|---|---|---|
+| Early lifecycle and plan-level retention differences | Investigate onboarding and product adoption | Whether interventions improve real retention |
+| Annual renewal-period risk | Pilot proactive renewal outreach | Customer-level causal impact |
+| High-MRR segments have material exposure | Prioritize account review by revenue and risk | Financial return on retention effort |
+| Risk model concentrates churners in top decile | Create a risk-based outreach queue | Prospective performance on real accounts |
+| A/B framework identifies an adequately sized test | Run a controlled retention experiment | Real churn outcomes, costs and guardrails |
+
+### Future improvements
+
+- Develop and publish a Tableau Public dashboard using `Output/tableau/` extracts.
+- Add cohort intersections such as **signup month × plan × company size**.
+- Compare logistic regression with tree-based models and evaluate calibration.
+- Test the pipeline with real, permissioned subscription histories.
+- Run an actual randomized retention trial and report observed effects.
+
+---
+
+## Project takeaway
+
+**This project connects descriptive analytics, financial analysis, predictive modeling, and experimentation into one decision-oriented workflow.** It demonstrates how a Data Analyst can transform raw subscription records into clear KPIs, identify business risks, prioritize customers, and design a defensible way to evaluate proposed solutions—while distinguishing simulated examples from validated real-world results.
